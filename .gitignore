@@ -32,6 +32,8 @@ htmlcov/
 .env
 .env.*
 .envrc
+.venv/
+/venv/
 
 # Logs
 *.log
