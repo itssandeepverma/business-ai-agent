@@ -146,6 +146,10 @@
                             <p id="painPointText" class="text-rose-800 font-bold">[Pending]</p>
                         </div>
                     </div>
+
+                    <h3 class="text-3xl font-black text-slate-900 my-6">Not A Priority</h3>
+                    <div id="not_a_priority" class="text-slate-600 text-lg leading-relaxed mb-8 italic">[Generating...]
+                    </div>
                 </div>
             </div>
 
@@ -242,8 +246,47 @@
         }
 
 
-        // TODO: STREAM AGENT FUNCTION
+        // STREAM AGENT FUNCTION
+           async function streamAgent(formData) {
+            const response = await fetch('/run-agent', {
+                method: 'POST',
+                body: formData
+            });
 
+            if (!response.ok || !response.body) {
+                throw new Error(`Streaming not supported or server error`);
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = ''
+
+            while(true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true })
+                const chunks = buffer.split('\n\n');
+                buffer = chunks.pop() || ''; // Keep incomplete chunk
+
+                for(const chunk of chunks) {
+                    const clean = chunk.replace(/^data:\s*/, '').trim();
+                    if(!clean) continue
+
+                    try {
+                        const event = JSON.parse(clean);
+
+                        if (event.type === 'log') {
+                            addLog(event.content.step, event.content.message);
+                        } else if (event.type === 'result') {
+                            renderData(event.content);
+                        }
+                    } catch (error) {
+                        console.error("Error parsing chunk:", error);
+                    }
+                }
+            }
+           }
 
         // 3. MAIN AGENT EXECUTION
         form.addEventListener('submit', async (e) => {
@@ -258,10 +301,21 @@
 
             addLog("SYSTEM", "Gathering parameters and context...");
 
-            // --- TODO: WRITE CORE FETCH LOGIC HERE ---
+            // --- WRITE CORE FETCH LOGIC HERE ---
+            const formData = new FormData()
+            formData.append('business_task', document.getElementById('taskInput').value);
+            formData.append('tone', document.getElementById('toneInput').value);
+            formData.append('depth', document.getElementById('depthInput').value);
 
+            try {
+                await streamAgent(formData)
+            } catch (error) {
+                addLog("Error: "+ error?.message)
+            } finally {
+                runBtn.disabled = false;
+                runBtn.innerText = "Run Agent Analysis";
+            }
         });
-
         // 4. RENDERING HELPERS (Keep these for easier teaching)
         function renderData(out) {
             // Strategy
@@ -271,6 +325,7 @@
                 document.getElementById('targetText').innerText = out.business_overview.primary_target_audience;
                 document.getElementById('uvpText').innerText = out.business_overview.unique_value_proposition;
                 document.getElementById('painPointText').innerText = out.business_overview.core_pain_point;
+                document.getElementById('not_a_priority').innerText = out.business_overview.not_a_priority;
             }
 
             // Marketing
@@ -281,29 +336,29 @@
             }
 
             // Emails
-            if (Array.isArray(out.email_campaign)) {
-
-                const emailsList = document.getElementById('emailsContainer');
-                emailsList.innerHTML = '';
-                out.email_campaign.forEach(em => {
-                    const card = document.createElement('div');
-                    card.className = "p-8 bg-white rounded-3xl border border-slate-100 shadow-sm";
-                    card.innerHTML = `<h4 class="font-black text-indigo-900 mb-2">${em.subject}</h4><p class="text-slate-600 whitespace-pre-wrap">${em.body}</p>`;
-                    emailsList.appendChild(card);
-                });
-            }
+                if (Array.isArray(out.email_campaign)) {
+                
+                    const emailsList = document.getElementById('emailsContainer');
+                    emailsList.innerHTML = '';
+                    out.email_campaign.forEach(em => {
+                        const card = document.createElement('div');
+                        card.className = "p-8 bg-white rounded-3xl border border-slate-100 shadow-sm";
+                        card.innerHTML = `<h4 class="font-black text-indigo-900 mb-2">${em.subject}</h4><p class="text-slate-600 whitespace-pre-wrap">${em.body}</p>`;
+                        emailsList.appendChild(card);
+                    });
+                }
 
             // Tasks
-            if (Array.isArray(out.task_breakdown)) {
-
-                const tasksTable = document.getElementById('tasksBody');
-                tasksTable.innerHTML = '';
-                out.task_breakdown.forEach(t => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td class="px-8 py-6 font-mono text-slate-400 font-bold">#${t.task_order}</td><td class="px-8 py-6 font-bold text-slate-900">${t.task_name}</td><td class="px-8 py-6 text-indigo-500 italic">${t.why_this_matters}</td>`;
-                    tasksTable.appendChild(tr);
-                });
-            }
+                if (Array.isArray(out.task_breakdown)) {
+                
+                    const tasksTable = document.getElementById('tasksBody');
+                    tasksTable.innerHTML = '';
+                    out.task_breakdown.forEach(t => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `<td class="px-8 py-6 font-mono text-slate-400 font-bold">#${t.task_order}</td><td class="px-8 py-6 font-bold text-slate-900">${t.task_name}</td><td class="px-8 py-6 text-indigo-500 italic">${t.why_this_matters}</td>`;
+                        tasksTable.appendChild(tr);
+                    });
+                }
 
             resultsSection.classList.remove('hidden');
         }

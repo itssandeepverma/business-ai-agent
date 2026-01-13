@@ -1,10 +1,9 @@
+import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
-import uvicorn
 
-from api.router import router 
-
+from api.router import router
 
 app = FastAPI(title="Business AI Agent", version="1.0.0")
 

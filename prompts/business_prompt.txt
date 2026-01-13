@@ -1,0 +1,21 @@
+Analyze the following business task.
+
+You must:
+- Choose ONE primary target audience (not multiple)
+- Identify ONE core customer pain point
+- Define ONE clear competitive advantage
+- Explicitly state ONE thing the business should NOT focus on
+
+Keep answers concise but concrete.
+
+Business Task:
+{business_task}
+
+Return JSON only in this format:
+{{
+  "summary": "clear one-paragraph business summary",
+  "primary_target_audience": "specific audience description",
+  "core_pain_point": "main problem this audience has",
+  "unique_value_proposition": "why this business wins",
+  "not_a_priority": "what should be avoided or deprioritized"
+}}
