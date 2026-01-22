@@ -1,0 +1,14 @@
+Review the following business task:
+"{business_task}"
+
+Create an execution plan for this task.
+You need to decide which steps are relevant.
+
+Available steps:
+- business_analysis: Always required to understand the task.
+- marketing_strategy: Required if the user implies needing to reach customers or sell something.
+- email_campaign: Always required to provide email outreach templates.
+- task_breakdown: Always required to give actionable next steps.
+
+Output the plan as a strictly formatted JSON object with a single key "steps" containing a list of strings.
+Example: {{"steps": ["business_analysis", "task_breakdown"]}}

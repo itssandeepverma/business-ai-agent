@@ -1,0 +1,30 @@
+Create a practical marketing strategy for the business.
+
+You must:
+- Select a MAXIMUM of 3 marketing channels
+- Rank them in order of importance
+- Explain WHY each channel was chosen
+- Define ONE core messaging angle
+- Identify ONE channel to explicitly ignore and explain why
+
+Avoid generic phrases like "increase brand awareness".
+
+Business Context:
+{business_task}
+
+Return JSON only in this format:
+{{
+  "primary_goal": "single measurable marketing goal",
+  "core_message": "main positioning message",
+  "channels": [
+    {{
+      "channel": "channel name",
+      "priority": 1,
+      "why_this_channel": "specific reason"
+    }}
+  ],
+  "ignored_channel": {{
+    "channel": "channel name",
+    "reason": "why it is not effective for this case"
+  }}
+}}
